@@ -129,7 +129,7 @@ let musicStarted = false;
 let coins = parseInt(localStorage.getItem('coins'))||0;
 let inventory = JSON.parse(localStorage.getItem('inventory'))||[];
 let historyData = JSON.parse(localStorage.getItem('historyData'))||{};
-let cooldown = parseInt(localStorage.getItem('cooldown'))||2000; // ms
+let cooldown = parseInt(localStorage.getItem('cooldown'))||2000;
 let lastRoll = 0;
 let totalRolls = parseInt(localStorage.getItem('totalRolls'))||0;
 
@@ -181,8 +181,8 @@ function rollRNG(){
   const rarityElem=document.getElementById('rarityText');
 
   let elapsed=0;
-  const animSpeed=50; // ms
-  const totalDuration=1000; // 1s
+  const animSpeed=50;
+  const totalDuration=1000;
   const interval=setInterval(()=>{
     const temp=images[Math.floor(Math.random()*images.length)];
     if(temp.requiresItem && !inventory.includes(temp.requiresItem)) return;
@@ -226,7 +226,6 @@ document.getElementById('rollButton').addEventListener('click', async () => {
         try{
             await bgMusic.play();
             musicStarted = true;
-            console.log("Muzyka działa!");
         }catch(err){
             console.log("Nie udało się odtworzyć muzyki:", err);
         }
@@ -244,4 +243,38 @@ document.getElementById('muteButton').addEventListener('click',()=>{ bgMusic.mut
 
 // ===== ULEPSZENIA =====
 document.getElementById('shortenCooldown').addEventListener('click',()=>{
-  if(coins>=50 && cooldown>500){ coins-=50; cool
+  if(coins>=50 && cooldown>500){ coins-=50; cooldown-=500; updateUI(); alert(`Cooldown skrócony! Teraz ${(cooldown/1000).toFixed(1)}s`);}
+  else if(cooldown<=500) alert('Cooldown już minimalny!');
+  else alert('Nie masz wystarczająco monet!');
+});
+
+document.getElementById('removeCooldown').addEventListener('click',()=>{
+  if(coins>=2000){ coins-=2000; cooldown=0; updateUI(); alert('Cooldown został całkowicie usunięty!'); }
+  else alert('Nie masz wystarczająco monet!');
+});
+
+document.getElementById('increaseChances').addEventListener('click',()=>{
+  if(coins>=100){ coins-=100; images.forEach(img=>{ img.chance=Math.round(img.chance*1.05*1000)/1000 }); updateUI(); alert('Szanse nieco ulepszone!');}
+  else alert('Nie masz wystarczająco monet!');
+});
+
+document.getElementById('buyItem').addEventListener('click',()=>{
+  if(coins>=100){
+      if(!inventory.includes('Tajemniczy Przedmiot')){
+          coins-=100; 
+          inventory.push('Tajemniczy Przedmiot'); 
+          updateUI(); 
+          alert('Tajemniczy Przedmiot dodany do ekwipunku!');
+      } else {
+          alert('Masz już Tajemniczy Przedmiot!');
+      }
+  } else alert('Nie masz wystarczająco monet!');
+});
+
+// ===== ODŚWIEŻANIE COOLDOWN =====
+setInterval(showCooldown,100);
+updateUI();
+</script>
+
+</body>
+</html>
