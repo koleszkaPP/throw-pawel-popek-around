@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Paweł RNG</title>
+<title>Paweł RNG - Mega Slot Edition</title>
 <style>
 body {
   font-family: Arial, sans-serif;
@@ -63,7 +63,7 @@ button {
 </head>
 <body>
 
-<h1>Paweł RNG</h1>
+<h1>Paweł RNG - Mega Slot</h1>
 
 <button id="rollButton">Roll</button>
 <div id="cooldownDisplay">Cooldown: 0s</div>
@@ -79,17 +79,11 @@ button {
   <button class="upgradeButton" id="shortenCooldown">Skróć cooldown (50 monet)</button>
   <button class="upgradeButton" id="removeCooldown">Usuń cooldown (2000 monet)</button>
   <button class="upgradeButton" id="increaseChances">Ulepszenie szans (100 monet)</button>
-  <button class="upgradeButton" id="buyItem">Kup przedmiot (100 monet)</button>
+  <button class="upgradeButton" id="buyItem">Kup Tajemniczy Przedmiot (100 monet)</button>
 </div>
 
 <div id="inventory">Ekwipunek: brak</div>
 <div id="history">Historia losowań:</div>
-<div id="yourStats" style="position:fixed; top:20px; right:20px; width:200px; background-color:#222; padding:10px; border-radius:10px; text-align:left;">
-  <h3>Your Stats</h3>
-  <div>Total Rolls: <span id="totalRolls">0</span></div>
-  <div>Total Stats Count: <span id="totalStatsCount">0</span></div>
-  <div>Total Playtime: <span id="totalPlaytime">0s</span></div>
-</div>
 
 <audio id="backgroundMusic" loop></audio>
 
@@ -103,7 +97,8 @@ const images = [
   {src: 'photo5.png', text: 'paweł ok', chance: 1/32, rarity: 'Mythic', reward: 40},
   {src: 'photo6.png', text: 'świąteczny paweł', chance: 1/64, rarity: 'Legendary', reward: 80},
   {src: 'photo7.png', text: 'paweł dostaje backshoty', chance: 1/128, rarity: 'Ultra Legendary', reward: 160},
-  {src: 'photo8.png', text: 'paweł komunista', chance: 1/256, rarity: 'Ultra Legendary', reward: 320}
+  {src: 'photo8.png', text: 'paweł komunista', chance: 1/256, rarity: 'Ultra Legendary', reward: 320},
+  {src: 'photo9.png', text: 'Śledziu', chance: 1/16, rarity: 'Secret', reward: 500, requiresItem: 'Tajemniczy Przedmiot'}
 ];
 
 const musicFiles = ['music.mp3','music2.mp3','music3.mp3','music4.mp3','music5.mp3'];
@@ -116,10 +111,6 @@ let inventory = JSON.parse(localStorage.getItem('inventory'))||[];
 let historyData = JSON.parse(localStorage.getItem('historyData'))||{};
 let cooldown = parseInt(localStorage.getItem('cooldown'))||2000; // ms
 let lastRoll = 0;
-let totalRolls = 0;
-let totalStatsCount = 0;
-let startTime = Date.now(); // czas rozpoczęcia sesji
-
 
 // ===== FUNKCJE =====
 function updateUI(){
@@ -150,6 +141,8 @@ function rollRNG(){
 
   const entries=[];
   images.forEach(img=>{
+    // sprawdzamy wymagany przedmiot
+    if(img.requiresItem && !inventory.includes(img.requiresItem)) return;
     let count = Math.floor(img.chance*256);
     if(inventory.length>0) count=Math.floor(count*1.05);
     for(let i=0;i<count;i++) entries.push(img);
@@ -165,6 +158,7 @@ function rollRNG(){
   const totalDuration=1000; // 1s
   const interval=setInterval(()=>{
     const temp=images[Math.floor(Math.random()*images.length)];
+    if(temp.requiresItem && !inventory.includes(temp.requiresItem)) return;
     imgElem.src=temp.src;
     textElem.textContent=temp.text;
     chanceElem.textContent=`Szansa: 1/${Math.round(1/temp.chance)}`;
@@ -194,14 +188,6 @@ function rollRNG(){
       imgElem.style.transform='scale(1) rotate(0deg)';
       imgElem.style.filter='brightness(1)';
       updateUI();
-      // ===== AKTUALIZACJA STATYSTYK =====
-totalRolls++; // zwiększamy licznik wszystkich rolli
-totalStatsCount += Math.round(1/selected.chance); // suma „1/chance”
-
-// aktualizacja widoku w HTML
-document.getElementById('totalRolls').textContent = totalRolls;
-document.getElementById('totalStatsCount').textContent = totalStatsCount;
-
     }
   },animSpeed);
 }
@@ -248,21 +234,21 @@ document.getElementById('increaseChances').addEventListener('click',()=>{
 });
 
 document.getElementById('buyItem').addEventListener('click',()=>{
-  if(coins>=100){ coins-=100; inventory.push('Tajemniczy Przedmiot'); updateUI(); alert('Przedmiot dodany do ekwipunku!');}
-  else alert('Nie masz wystarczająco monet!');
+  if(coins>=100){
+      if(!inventory.includes('Tajemniczy Przedmiot')){
+          coins-=100; 
+          inventory.push('Tajemniczy Przedmiot'); 
+          updateUI(); 
+          alert('Tajemniczy Przedmiot dodany do ekwipunku!');
+      } else {
+          alert('Masz już Tajemniczy Przedmiot!');
+      }
+  } else alert('Nie masz wystarczająco monet!');
 });
 
 // ===== ODŚWIEŻANIE COOLDOWN =====
 setInterval(showCooldown,100);
 updateUI();
-function updatePlaytime(){
-  const now = Date.now();
-  const elapsed = Math.floor((now - startTime)/1000); // sekundy
-  document.getElementById('totalPlaytime').textContent = `${elapsed}s`;
-}
-
-setInterval(updatePlaytime, 1000); // odświeżanie co sekundę
-
 </script>
 </body>
 </html>
