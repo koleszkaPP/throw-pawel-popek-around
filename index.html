@@ -174,10 +174,21 @@ document.getElementById('rollButton').addEventListener('click', () => {
 
   rollRNG();
 
-  setTimeout(() => {
-    rollCooldown = false;
-  }, 2000);
+  let timeLeft = 2;
+  btn.textContent = timeLeft;
+
+  const countdown = setInterval(() => {
+    timeLeft--;
+    if (timeLeft > 0) {
+      btn.textContent = timeLeft;
+    } else {
+      clearInterval(countdown);
+      btn.textContent = "Roll";
+      rollCooldown = false;
+    }
+  }, 1000);
 });
+
 
 
 // ---- PRZYCISK MUTE ----
