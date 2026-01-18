@@ -1,126 +1,150 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-<meta charset="UTF-8" />
-<title>Rzucane zdjęcie</title>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paweł RNG</title>
 <style>
-    body {
-        margin: 0;
-        height: 100vh;
-        overflow: hidden;
-        background: white;
-        user-select: none;
-        position: relative;
-    }
+  body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background: #1e1e1e;
+    color: #fff;
+    margin: 0;
+    padding: 0;
+  }
 
-    #photo {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 220px;
-        cursor: grab;
-        transform: translate(-50%, -50%);
-        transition: transform 0.05s linear;
-    }
+  h1 {
+    margin-top: 50px;
+    font-size: 2em;
+  }
 
-    button {
-        position: absolute;
-        top: 50%;
-        padding: 12px 22px;
-        background: #e0e0e0;
-        border: 2px solid black;
-        border-radius: 14px;
-        font-size: 16px;
-        cursor: pointer;
-    }
+  #rollButton {
+    padding: 20px 40px;
+    font-size: 1.5em;
+    margin: 20px;
+    cursor: pointer;
+    transition: transform 0.2s;
+    border: none;
+    border-radius: 10px;
+    background-color: #4CAF50;
+    color: white;
+  }
 
-    #spinBtn {
-        right: 40px;
-    }
+  #rollButton:active {
+    transform: scale(0.9);
+  }
 
-    #bgBtn {
-        left: 40px;
-    }
+  #resultImage {
+    width: 300px;
+    height: 300px;
+    margin: 20px;
+    object-fit: cover;
+    border-radius: 15px;
+  }
+
+  #resultText {
+    font-size: 1.5em;
+    margin-top: 10px;
+  }
+
+  #chanceText, #rarityText {
+    margin-top: 5px;
+    font-size: 1.2em;
+  }
+
+  #muteButton {
+    padding: 10px 20px;
+    margin: 10px;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    background-color: #f44336;
+    color: white;
+  }
 </style>
 </head>
-
 <body>
 
-<img id="photo" src="photo.png" draggable="false">
+<h1>Paweł RNG</h1>
 
-<button id="spinBtn">spin</button>
-<button id="bgBtn">backround</button>
+<button id="rollButton">Roll</button>
+<br>
+<img id="resultImage" src="" alt="Result">
+<div id="resultText"></div>
+<div id="chanceText"></div>
+<div id="rarityText"></div>
+
+<button id="muteButton">Mute/Unmute</button>
+
+<audio id="backgroundMusic" loop autoplay>
+  <source src="music.mp3" type="audio/mpeg">
+  <source src="music2.mp3" type="audio/mpeg">
+  <source src="music3.mp3" type="audio/mpeg">
+  <source src="music4.mp3" type="audio/mpeg">
+  <source src="music5.mp3" type="audio/mpeg">
+  Twoja przeglądarka nie wspiera odtwarzania audio.
+</audio>
 
 <script>
-    const photo = document.getElementById("photo");
-    const spinBtn = document.getElementById("spinBtn");
-    const bgBtn = document.getElementById("bgBtn");
+const images = [
+  {src: 'photo.png', text: 'gejmingowy paweł', chance: 1/2, rarity: 'Common'},
+  {src: 'photo2.png', text: 'paweł prezydent', chance: 1/4, rarity: 'Uncommon'},
+  {src: 'photo3.png', text: 'pawel w zoltym hoodie', chance: 1/8, rarity: 'Rare'},
+  {src: 'photo4.png', text: 'funni paweł', chance: 1/16, rarity: 'Epic'},
+  {src: 'photo5.png', text: 'paweł ok', chance: 1/32, rarity: 'Mythic'},
+  {src: 'photo6.png', text: 'świąteczny paweł', chance: 1/64, rarity: 'Legendary'},
+  {src: 'photo7.png', text: 'paweł dostaje backshoty', chance: 1/128, rarity: 'Ultra Legendary'},
+  {src: 'photo8.png', text: 'paweł komunista', chance: 1/256, rarity: 'Ultra Legendary'}
+];
 
-    // RZUCANIE ZDJĘCIA
-    let dragging = false;
-    let offsetX = 0;
-    let offsetY = 0;
+// Muzyka losowa
+const musicFiles = ['music.mp3', 'music2.mp3', 'music3.mp3', 'music4.mp3', 'music5.mp3'];
+const bgMusic = document.getElementById('backgroundMusic');
 
-    photo.addEventListener("mousedown", e => {
-        dragging = true;
-        photo.style.cursor = "grabbing";
-        offsetX = e.clientX - photo.offsetLeft;
-        offsetY = e.clientY - photo.offsetTop;
-    });
+// Funkcja losująca muzykę
+function playRandomMusic() {
+  const randomMusic = musicFiles[Math.floor(Math.random() * musicFiles.length)];
+  bgMusic.src = randomMusic;
+  bgMusic.play();
+}
 
-    document.addEventListener("mouseup", () => {
-        dragging = false;
-        photo.style.cursor = "grab";
-    });
+// Włącz/wyłącz dźwięk
+document.getElementById('muteButton').addEventListener('click', () => {
+  bgMusic.muted = !bgMusic.muted;
+});
 
-    document.addEventListener("mousemove", e => {
-        if (!dragging) return;
-        photo.style.left = e.clientX - offsetX + "px";
-        photo.style.top = e.clientY - offsetY + "px";
-    });
+// Funkcja RNG
+function rollRNG() {
+  const rand = Math.random(); // liczba 0-1
+  let cumulative = 0;
+  let selected = images[0];
 
-    // SPIN
-    let angle = 0;
-    let spinning = false;
+  for (let img of images) {
+    cumulative += img.chance;
+    if (rand <= cumulative) {
+      selected = img;
+      break;
+    }
+  }
 
-    spinBtn.addEventListener("click", () => {
-        if (spinning) return;
-        spinning = true;
+  // Wyświetl obrazek i tekst
+  document.getElementById('resultImage').src = selected.src;
+  document.getElementById('resultText').textContent = selected.text;
+  document.getElementById('chanceText').textContent = `Szansa: 1/${1/selected.chance}`;
+  document.getElementById('rarityText').textContent = `Rzadkość: ${selected.rarity}`;
+}
 
-        let speed = 30;
-        let spins = 0;
+// Przycisk Roll
+document.getElementById('rollButton').addEventListener('click', () => {
+  const btn = document.getElementById('rollButton');
+  btn.style.transform = 'scale(0.8)';
+  setTimeout(() => btn.style.transform = 'scale(1)', 250);
+  rollRNG();
+});
 
-        const spinInterval = setInterval(() => {
-            angle += speed;
-            photo.style.transform = `rotate(${angle}deg)`;
-            spins++;
-
-            if (spins > 80) {
-                clearInterval(spinInterval);
-                spinning = false;
-            }
-        }, 10);
-    });
-
-    // ZMIANA TŁA
-    const colors = [
-        "red",
-        "orange",
-        "yellow",
-        "green",
-        "blue",
-        "purple",
-        "black",
-        "white"
-    ];
-
-    let colorIndex = 0;
-
-    bgBtn.addEventListener("click", () => {
-        document.body.style.background = colors[colorIndex];
-        colorIndex = (colorIndex + 1) % colors.length;
-    });
+// Start losowej muzyki
+playRandomMusic();
 </script>
 
 </body>
